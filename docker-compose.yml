@@ -1,0 +1,47 @@
+# docker-compose.yml
+version: '2'
+services:
+  php7-fpm:
+    image: blind1_php7
+    container_name: blind1_php7
+    restart: on-failure
+    volumes:
+      - "${LOGPHP}:/var/log/php-fpm/"
+      - "${SYMFONY}:/var/www/html/symfony/"
+    ports:
+      - 9000:9000
+    links:
+      - mysql
+
+  mysql:
+    env_file:
+      - .env
+    image: blind1_mysql
+    container_name: blind1_mysql
+    restart: on-failure
+    volumes:
+      - "${DBHOST}:/var/lib/mysql"
+    environment:
+      MYSQL_ROOT_PASSWORD: "$DBRP"
+      MYSQL_DATABASE: "$DB"
+      MYSQL_USER: "$DBU"
+      MYSQL_PASSWORD: "$DBP"
+    ports:
+      - 3306:3306
+
+  app:
+    env_file:
+      - .env
+    image: blind1_symfony
+    container_name: blind1_symfony
+    restart: on-failure
+    links:
+      - php7-fpm
+    volumes:
+      - "${NGINXLOGHOST}:/var/log/nginx/"
+      - "${SYMFONY}:/var/www/html/symfony/"
+    ports:
+      - 80:80
+      - 8080:8080
+    tty: true
+
